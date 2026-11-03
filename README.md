@@ -137,3 +137,19 @@ The app creates these files automatically if one or more are missing from `data/
 - Built an interactive Streamlit dashboard to compare demand and workforce scenarios, monitor operational KPIs and generate rule-based replenishment and expiry recommendations.
 
 Only claim performance improvements or accuracy percentages if you measure and validate them with a documented experiment.
+
+
+## Phase 1 upgrade: forecasting evaluation and inventory optimization
+
+- Compare ARIMA(1,1,1), weekly SARIMA and Random Forest with lag/rolling features.
+- Use a chronological 14-day holdout; report MAE, RMSE, MAPE (excluding zero actuals) and sMAPE.
+- Refit the lowest-holdout-MAE model on all history for the seven-day SKU forecast.
+- Calculate safety stock, dynamic reorder point (ROP) and EOQ.
+- FEFO now excludes expired batches and reports any unfulfilled dispatch quantity.
+
+Prototype assumptions for EOQ are ₹50/order ordering cost and ₹2/unit/year holding cost. Replace these with validated business costs before real procurement use. Synthetic data is demonstrative; do not claim model accuracy or operational savings without measured experiments.
+
+Run tests:
+```powershell
+python -m pytest tests/ -v
+```

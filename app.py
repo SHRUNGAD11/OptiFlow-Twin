@@ -8,7 +8,7 @@ ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 
 from src.data import ensure_data
-from src.forecasting import forecast_all_skus
+from src.forecasting import compare_forecasters
 from src.bundling import discover_bundles
 from src.inventory import inventory_status, fefo_dispatch, replenishment_plan
 from src.simulation import run_simulation
@@ -39,7 +39,7 @@ tab_overview, tab_inventory, tab_forecast, tab_bundles, tab_sim, tab_recs, tab_d
     ["Overview", "Inventory & FEFO", "Demand Forecast", "Product Bundles", "Simulation", "Recommendations", "Data"]
 )
 
-forecast = forecast_all_skus(sales, products, periods=7)
+forecast_metrics, forecast = compare_forecasters(sales, products, test_days=14)
 inv = inventory_status(products, forecast, demand_multiplier=demand_multiplier)
 sim_orders = orders.head(order_limit).copy()
 simulation = run_simulation(sim_orders, demand_multiplier=demand_multiplier, workers=workers)
@@ -68,11 +68,12 @@ with tab_overview:
 
 with tab_inventory:
     st.subheader("Inventory health and FEFO")
-    show_cols = ["sku", "product_name", "category", "current_stock", "daily_demand", "forecast_7d", "days_of_cover", "reorder_point", "stockout_risk"]
+    show_cols = ["sku", "product_name", "category", "current_stock", "forecast_7d", "days_of_cover", "safety_stock", "dynamic_reorder_point", "eoq", "stockout_risk"]
     st.dataframe(inv[show_cols].sort_values("days_of_cover"), use_container_width=True, hide_index=True)
-    st.markdown("### Replenishment suggestions")
+    st.markdown("### Dynamic replenishment suggestions (ROP + EOQ)")
+    st.caption("ROP = forecast daily demand × supplier lead time + safety stock. Prototype assumptions: ₹50 ordering cost and ₹2/unit/year holding cost; replace with business-specific costs.")
     st.dataframe(replenishment_plan(inv), use_container_width=True, hide_index=True)
-    st.markdown("### FEFO dispatch simulator")
+    st.markdown("### FEFO dispatch simulator (expired batches excluded)")
     sku = st.selectbox("Choose a perishable SKU", products.loc[products["category"].isin(["Dairy", "Bakery", "Produce"]), "sku"].tolist())
     qty = st.number_input("Requested dispatch quantity", min_value=1, max_value=1000, value=25)
     if st.button("Simulate FEFO allocation"):
@@ -94,7 +95,14 @@ with tab_forecast:
     chart_hist["type"] = "Historical"
     chart_fc["type"] = "Forecast"
     st.plotly_chart(px.line(pd.concat([chart_hist, chart_fc]), x="date", y="demand", color="type", markers=True, title="Historical demand and forecast"), use_container_width=True)
-    st.caption("ARIMA(1,1,1) is fitted to daily SKU demand. If a fit fails, the module uses a documented moving-average fallback.")
+    st.markdown("### Chronological holdout model comparison")
+    sku_metrics = forecast_metrics[forecast_metrics["sku"] == chosen] if not forecast_metrics.empty else forecast_metrics
+    if not sku_metrics.empty:
+        st.dataframe(sku_metrics[["model", "MAE", "RMSE", "MAPE", "sMAPE"]].sort_values("MAE"), use_container_width=True, hide_index=True)
+        best = sku_metrics.dropna(subset=["MAE"]).sort_values("MAE").head(1)
+        if not best.empty:
+            st.success(f"Lowest holdout MAE for {chosen}: {best.iloc[0]['model']} ({best.iloc[0]['MAE']:.2f})")
+    st.caption("Chronological 14-day holdout; MAPE excludes zero-actual days. Lowest-MAE model is refit on full history for the seven-day forecast.")
 
 with tab_bundles:
     st.subheader("Frequently purchased-together products")

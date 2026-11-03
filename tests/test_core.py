@@ -6,7 +6,7 @@ def test_fefo_dispatch_uses_earliest_expiry_first():
         {"batch_id":"late","sku":"A","quantity":10,"expiry_date":"2027-02-01"},
         {"batch_id":"early","sku":"A","quantity":8,"expiry_date":"2027-01-01"},
     ])
-    result = fefo_dispatch(batches, "A", 12)
+    result = fefo_dispatch(batches, "A", 12, as_of="2026-11-03")
     assert result.iloc[0]["batch_id"] == "early"
     assert result.iloc[0]["dispatch_quantity"] == 8
     assert result.iloc[1]["dispatch_quantity"] == 4
