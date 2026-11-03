@@ -5,3 +5,6 @@ venv/
 .env
 .DS_Store
 .streamlit/secrets.toml
+
+src/digital_twin_simulation_backup.py
+src/digital_twin_simulation_static_backup.py

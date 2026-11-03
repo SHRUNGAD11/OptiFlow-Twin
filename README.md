@@ -18,7 +18,7 @@ An end-to-end, synthetic-data digital warehouse twin built with Python, Streamli
 
 ## 1. Requirements
 
-- Python 3.10–3.12 recommended
+- Python 3.10â€“3.12 recommended
 - VS Code
 - Python extension for VS Code
 - Internet connection for the first dependency installation
@@ -26,8 +26,8 @@ An end-to-end, synthetic-data digital warehouse twin built with Python, Streamli
 ## 2. Run in VS Code (Windows)
 
 1. Extract `OptiFlow_Twin.zip`.
-2. Open VS Code → **File → Open Folder** → select the `OptiFlow_Twin` folder.
-3. Open **Terminal → New Terminal**.
+2. Open VS Code â†’ **File â†’ Open Folder** â†’ select the `OptiFlow_Twin` folder.
+3. Open **Terminal â†’ New Terminal**.
 4. Create a virtual environment:
 
    ```powershell
@@ -76,26 +76,26 @@ python -m streamlit run app.py
 
 ```text
 OptiFlow_Twin/
-├── app.py
-├── requirements.txt
-├── README.md
-├── data/
-│   ├── products.csv
-│   ├── sales.csv
-│   ├── transactions.csv
-│   ├── orders.csv
-│   └── batches.csv
-├── src/
-│   ├── __init__.py
-│   ├── data.py
-│   ├── forecasting.py
-│   ├── bundling.py
-│   ├── inventory.py
-│   ├── simulation.py
-│   ├── kpis.py
-│   └── recommendations.py
-└── tests/
-    └── test_core.py
+â”œâ”€â”€ app.py
+â”œâ”€â”€ requirements.txt
+â”œâ”€â”€ README.md
+â”œâ”€â”€ data/
+â”‚   â”œâ”€â”€ products.csv
+â”‚   â”œâ”€â”€ sales.csv
+â”‚   â”œâ”€â”€ transactions.csv
+â”‚   â”œâ”€â”€ orders.csv
+â”‚   â””â”€â”€ batches.csv
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ __init__.py
+â”‚   â”œâ”€â”€ data.py
+â”‚   â”œâ”€â”€ forecasting.py
+â”‚   â”œâ”€â”€ bundling.py
+â”‚   â”œâ”€â”€ inventory.py
+â”‚   â”œâ”€â”€ simulation.py
+â”‚   â”œâ”€â”€ kpis.py
+â”‚   â””â”€â”€ recommendations.py
+â””â”€â”€ tests/
+    â””â”€â”€ test_core.py
 ```
 
 ## 5. How the modules work
@@ -147,11 +147,11 @@ Only claim performance improvements or accuracy percentages if you measure and v
 - Calculate safety stock, dynamic reorder point (ROP) and EOQ.
 - FEFO now excludes expired batches and reports any unfulfilled dispatch quantity.
 
-Prototype assumptions for EOQ are ₹50/order ordering cost and ₹2/unit/year holding cost. Replace these with validated business costs before real procurement use. Synthetic data is demonstrative; do not claim model accuracy or operational savings without measured experiments.
+Prototype assumptions for EOQ are INR 50/order ordering cost and INR 2/unit/year holding cost. Replace these with validated business costs before real procurement use. Synthetic data is demonstrative; do not claim model accuracy or operational savings without measured experiments.
 
 Run tests:
 ```powershell
-python -m pytest tests/ -v
+pytest -v
 ```
 
 ---
@@ -240,7 +240,7 @@ Current test suite: 29 tests passed.
 Run tests:
 
 ```powershell
-python -m pytest -v
+pytest -v
 ```
 
 Run scheduler benchmark:
