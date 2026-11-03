@@ -105,6 +105,7 @@ The platform follows a modular architecture:
 3. **Optimization Layer:** Warehouse slotting, replenishment, and scheduling strategies.
 4. **Simulation Layer:** Digital twin engine for modeling warehouse operations.
 5. **Presentation Layer:** Interactive Streamlit dashboard.
+   ![OptiFlow Twin System Architecture](docs/system-architecture.png)
 
 ## Project Structure
 
