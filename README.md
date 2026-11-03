@@ -67,6 +67,20 @@ Supports five operational scenarios:
 
 **Observed result:** In the high-demand benchmark, dynamic scheduling reduced Scheduled-order average waiting time by approximately 7.05%, while increasing Express-order waiting time. This represents a scheduling trade-off rather than an overall throughput improvement.
 
+## Application Screenshots
+
+### Dashboard Overview
+![OptiFlow Twin Dashboard](screenshots/dashboard.png)
+
+### Demand Forecasting
+![Demand Forecast](screenshots/demand-forecast.png)
+
+### Warehouse Digital Twin Simulation
+![Simulation Results](screenshots/simulation-results.png)
+
+### Intelligent Order Prioritization
+![Order Prioritization](screenshots/order-prioritization.png)
+
 ## Technology Stack
 
 | Category | Technologies |
