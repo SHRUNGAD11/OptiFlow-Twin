@@ -59,11 +59,7 @@ def compare_forecasters(sales,products,test_days=14):
         selected=min(candidates,key=lambda x:x["MAE"])["model"] if candidates else "7-day mean fallback"
         try: pred=_predict(selected,series,7) if selected!="7-day mean fallback" else np.repeat(series.tail(7).mean(),7)
         except Exception: pred=np.repeat(series.tail(7).mean(),7); selected="7-day mean fallback"
-        dates=pd.date_range(
-    start=series.index.max() + pd.Timedelta(1, unit="D"),
-    periods=7,
-    freq="D"
-)
+        dates=pd.date_range(series.index.max()+pd.Timedelta(days=1),periods=7)
         forecasts.extend({"sku":sku,"date":d,"forecast_demand":float(max(0,v)),"model":selected} for d,v in zip(dates,pred))
     return pd.DataFrame(scores),pd.DataFrame(forecasts)
 
