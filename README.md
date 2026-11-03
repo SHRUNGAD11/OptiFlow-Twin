@@ -1,258 +1,247 @@
 # OptiFlow Twin
+### AI-Powered Digital Warehouse Management & Optimization Platform
 
-An end-to-end, synthetic-data digital warehouse twin built with Python, Streamlit, ARIMA, Apriori and SimPy.
+<p align="center">
+  <strong>Transforming warehouse operations through Artificial Intelligence, Digital Twin Simulation, and Intelligent Optimization.</strong>
+</p>
 
-## Features
-
-- Synthetic warehouse data generation (products, 90-day sales, transactions, orders and expiry batches).
-- Data processing with Pandas and NumPy.
-- Seven-day SKU demand forecasts using ARIMA(1,1,1), with a moving-average fallback if model fitting fails.
-- Apriori frequent-itemset mining and association rules for potential product bundles.
-- Inventory health, days-of-cover and reorder suggestions.
-- FEFO (First Expiry, First Out) batch allocation.
-- SimPy discrete-event model for order arrivals, express/scheduled priority, picking, packing and dispatch.
-- What-if controls for demand multiplier and worker capacity.
-- KPI dashboard and rule-based recommendations.
-
-> This project uses synthetic data. It is a demonstrator, not a live warehouse integration. Forecasts and simulation results are estimates, not guarantees.
-
-## 1. Requirements
-
-- Python 3.10â€“3.12 recommended
-- VS Code
-- Python extension for VS Code
-- Internet connection for the first dependency installation
-
-## 2. Run in VS Code (Windows)
-
-1. Extract `OptiFlow_Twin.zip`.
-2. Open VS Code â†’ **File â†’ Open Folder** â†’ select the `OptiFlow_Twin` folder.
-3. Open **Terminal â†’ New Terminal**.
-4. Create a virtual environment:
-
-   ```powershell
-   py -m venv .venv
-   ```
-
-5. Activate it:
-
-   ```powershell
-   .\.venv\Scripts\Activate.ps1
-   ```
-
-   If PowerShell blocks activation, run this once in that terminal:
-
-   ```powershell
-   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-   .\.venv\Scripts\Activate.ps1
-   ```
-
-6. Install packages:
-
-   ```powershell
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
-
-7. Start the dashboard:
-
-   ```powershell
-   python -m streamlit run app.py
-   ```
-
-8. Streamlit will print a local URL, normally `http://localhost:8501`. Open it in your browser.
-
-## 3. Run on macOS / Linux
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-python -m streamlit run app.py
-```
-
-## 4. Project structure
-
-```text
-OptiFlow_Twin/
-â”œâ”€â”€ app.py
-â”œâ”€â”€ requirements.txt
-â”œâ”€â”€ README.md
-â”œâ”€â”€ data/
-â”‚   â”œâ”€â”€ products.csv
-â”‚   â”œâ”€â”€ sales.csv
-â”‚   â”œâ”€â”€ transactions.csv
-â”‚   â”œâ”€â”€ orders.csv
-â”‚   â””â”€â”€ batches.csv
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ __init__.py
-â”‚   â”œâ”€â”€ data.py
-â”‚   â”œâ”€â”€ forecasting.py
-â”‚   â”œâ”€â”€ bundling.py
-â”‚   â”œâ”€â”€ inventory.py
-â”‚   â”œâ”€â”€ simulation.py
-â”‚   â”œâ”€â”€ kpis.py
-â”‚   â””â”€â”€ recommendations.py
-â””â”€â”€ tests/
-    â””â”€â”€ test_core.py
-```
-
-## 5. How the modules work
-
-1. **Data:** `src/data.py` creates reproducible synthetic warehouse data.
-2. **Forecasting:** `src/forecasting.py` fits an ARIMA time-series model per SKU.
-3. **Bundling:** `src/bundling.py` converts order baskets into a one-hot matrix and mines association rules.
-4. **Inventory:** `src/inventory.py` calculates days of cover, reorder status and FEFO dispatch allocations.
-5. **Simulation:** `src/simulation.py` uses SimPy resources to model priority picking and packing queues.
-6. **KPIs:** `src/kpis.py` calculates metrics from the generated data and simulation.
-7. **Recommendations:** `src/recommendations.py` converts risk signals into decision-support messages.
-8. **Dashboard:** `app.py` connects the modules and displays interactive tables, charts and scenario controls.
-
-## 6. Dataset schemas
-
-- `products.csv`: `sku, product_name, category, current_stock, daily_demand, reorder_point, shelf_life_days, lead_time_days`
-- `sales.csv`: `date, sku, quantity`
-- `transactions.csv`: `transaction_id, sku`
-- `orders.csv`: `order_id, arrival_time, priority, items, pick_units`
-- `batches.csv`: `batch_id, sku, quantity, expiry_date`
-
-The app creates these files automatically if one or more are missing from `data/`.
-
-## 7. Important modelling notes
-
-- ARIMA is a statistical forecasting method; it is not a deep-learning model.
-- Apriori identifies association patterns, not causal relationships.
-- SimPy models a simplified warehouse workflow. It does not connect to real scanners, WMS software or IoT sensors.
-- The service-level KPI in this prototype is an inventory-coverage proxy: the percentage of SKUs whose stock covers the forecast horizon. It is not measured customer order fill rate.
-- Wastage is not presented as an observed result because the synthetic dataset does not include actual disposal records.
-- The demand slider scales forecast demand and compresses simulated order arrival intervals to model a busier warehouse.
-
-## 8. Resume description (use after you have run and validated it)
-
-**OptiFlow Twin | Python, Streamlit, ARIMA, Apriori, SimPy, Pandas, NumPy**
-
-- Developed a synthetic-data digital warehouse twin to analyze inventory health, forecast SKU-level demand and evaluate warehouse operating scenarios.
-- Implemented ARIMA-based demand forecasting, Apriori association-rule mining, FEFO inventory allocation and SimPy discrete-event order-flow simulation.
-- Built an interactive Streamlit dashboard to compare demand and workforce scenarios, monitor operational KPIs and generate rule-based replenishment and expiry recommendations.
-
-Only claim performance improvements or accuracy percentages if you measure and validate them with a documented experiment.
-
-
-## Phase 1 upgrade: forecasting evaluation and inventory optimization
-
-- Compare ARIMA(1,1,1), weekly SARIMA and Random Forest with lag/rolling features.
-- Use a chronological 14-day holdout; report MAE, RMSE, MAPE (excluding zero actuals) and sMAPE.
-- Refit the lowest-holdout-MAE model on all history for the seven-day SKU forecast.
-- Calculate safety stock, dynamic reorder point (ROP) and EOQ.
-- FEFO now excludes expired batches and reports any unfulfilled dispatch quantity.
-
-Prototype assumptions for EOQ are INR 50/order ordering cost and INR 2/unit/year holding cost. Replace these with validated business costs before real procurement use. Synthetic data is demonstrative; do not claim model accuracy or operational savings without measured experiments.
-
-Run tests:
-```powershell
-pytest -v
-```
+<p align="center">
+  <a href="https://optiflow-twin-nf2npvjbwyn2kmkywyxxwq.streamlit.app/">Live Demo</a> •
+  <a href="https://github.com/SHRUNGAD11/OptiFlow-Twin">GitHub Repository</a>
+</p>
 
 ---
 
-## Phase 2: Interactive Warehouse Digital Twin
+## Overview
 
-- Implemented a stateful warehouse engine to track inventory, orders, workers and operational events.
-- Integrated SimPy-based discrete-event simulation with FEFO inventory dispatch.
-- Implemented worker assignment, order processing, packing and dispatch workflows.
-- Developed a Scenario Lab to evaluate normal demand, peak demand and workforce shortage conditions.
-- Added warehouse event history and operational performance metrics.
+**OptiFlow Twin** is an AI-powered warehouse management and optimization platform that combines machine learning, inventory optimization, digital twin simulation, and intelligent order scheduling.
 
-## Phase 3: AI-Powered Warehouse Optimization
+The platform models warehouse operations and helps analyze how demand fluctuations, inventory constraints, warehouse layouts, and workforce availability affect order fulfillment performance.
 
-### 3.1 Warehouse Layout Optimization
+It provides an interactive Streamlit dashboard for exploring operational metrics, testing warehouse scenarios, and evaluating optimization strategies.
 
-- Developed demand-based warehouse slotting using historical sales velocity and order frequency.
-- Implemented ABC classification to categorize products based on cumulative picking frequency.
-- Optimized product placement using Manhattan distance from the dispatch point.
-- Compared alphabetical baseline, demand-based and ABC-based slotting strategies.
+## Key Features
 
-Measured results on the current synthetic dataset:
+### 1. AI-Based Demand Forecasting
+- Implements ARIMA, SARIMA, and Random Forest forecasting models.
+- Uses chronological train-test evaluation.
+- Evaluates models using MAE, RMSE, MAPE, and sMAPE.
+- Generates seven-day SKU-level demand forecasts.
 
-| Strategy | Average weighted picking distance |
-|---|---:|
-| Alphabetical baseline | 2.5242 |
-| Demand-based | 2.4529 |
-| ABC-based | 2.4529 |
+### 2. Intelligent Inventory Optimization
+- Dynamic safety stock calculation.
+- Lead-time-aware reorder point estimation.
+- Economic Order Quantity (EOQ).
+- FEFO (First Expired, First Out) inventory dispatch.
+- Expiry monitoring and replenishment recommendations.
 
-The demand-based strategy reduced weighted picking distance by approximately 2.83% against the alphabetical benchmark.
+### 3. Warehouse Digital Twin
+- Simulates warehouse inventory and order operations.
+- Models worker availability and order fulfillment.
+- Tracks operational events and warehouse performance.
+- Evaluates warehouse behavior under different operating conditions.
 
-### 3.2 Intelligent Order Prioritization
+### 4. Scenario Analysis
+Supports five operational scenarios:
 
-- Developed a dynamic order-priority scoring engine.
-- Assigns higher base priority to Express orders.
-- Incorporates waiting-time aging to reduce starvation of Scheduled orders.
-- Includes a workload penalty based on order picking units.
-- Dynamically recalculates pending-order scores when dispatch decisions are made.
-- Records priority scores in simulation results.
+- Normal Demand
+- High Demand
+- Peak Demand
+- Workforce Shortage
+- Peak Demand with Workforce Shortage
 
-Priority score components:
-- Base priority: Express = 100, Scheduled = 50.
-- Waiting-time bonus: 0.5 points per waiting minute, capped at 60.
-- Workload penalty: 0.25 points per picking unit, capped at 5.
+### 5. Warehouse Layout Optimization
+- Demand-based product slotting.
+- ABC inventory classification.
+- Manhattan-distance-based picking analysis.
+- Comparison of alphabetical, demand-based, and ABC-based layouts.
 
-### 3.3 Streamlit Dashboard Integration
+**Observed result:** The demand-based and ABC-based layouts achieved a 2.83% reduction in weighted average picking distance compared with the alphabetical baseline on the current dataset.
 
-Added dedicated dashboard functionality for:
-- Intelligent order-priority score distribution.
-- Express versus Scheduled order comparison.
-- Top-priority order ranking.
-- Waiting-time analysis.
-- Fulfillment-time analysis.
-- Complete order-priority results.
+### 6. Intelligent Order Prioritization
+- Dynamic order scoring based on urgency, waiting time, and workload.
+- Express and Scheduled order classification.
+- Simulation-based scheduling.
+- Priority score and waiting-time analysis.
+- Static versus dynamic scheduler benchmarking.
 
-### 3.4 Scheduler Benchmarking
+**Observed result:** In the high-demand benchmark, dynamic scheduling reduced Scheduled-order average waiting time by approximately 7.05%, while increasing Express-order waiting time. This represents a scheduling trade-off rather than an overall throughput improvement.
 
-Compared static Express-first scheduling with dynamic priority scheduling using identical synthetic warehouse data.
+## Technology Stack
 
-High-demand scenario:
-- 500 orders.
-- 2x demand multiplier.
-- 3 available workers.
+| Category | Technologies |
+|---|---|
+| Programming Language | Python |
+| Frontend & Dashboard | Streamlit |
+| Data Processing | Pandas, NumPy |
+| Machine Learning | Scikit-learn |
+| Forecasting | ARIMA, SARIMA, Random Forest |
+| Discrete-Event Simulation | SimPy |
+| Data Visualization | Plotly |
+| Testing | Pytest |
+| Version Control | Git, GitHub |
+| Deployment | Streamlit Community Cloud |
 
-| Metric | Static | Dynamic |
-|---|---:|---:|
-| Express average wait | 2.94 min | 18.12 min |
-| Scheduled average wait | 482.38 min | 448.36 min |
-| Express dispatch rate | 100% | 100% |
-| Scheduled dispatch rate | 98.95% | 98.95% |
+## System Architecture
 
-Dynamic scheduling reduced Scheduled-order average waiting time by approximately 7.05%, while increasing Express-order waiting time.
+The platform follows a modular architecture:
 
-This demonstrates a trade-off between order urgency and scheduling fairness rather than a universal improvement in fulfillment performance.
+1. **Data Layer:** Warehouse inventory, historical sales, orders, and product information.
+2. **Analytics Layer:** Demand forecasting, inventory analysis, and order prioritization.
+3. **Optimization Layer:** Warehouse slotting, replenishment, and scheduling strategies.
+4. **Simulation Layer:** Digital twin engine for modeling warehouse operations.
+5. **Presentation Layer:** Interactive Streamlit dashboard.
 
-### Testing and Validation
+## Project Structure
 
-- Added automated tests for warehouse state management, FEFO dispatch and inventory validation.
-- Added tests for dynamic priority scoring and waiting-time aging.
-- Added integration tests for priority scores in simulation results.
-- Validated worker release after high-demand simulations.
-- Compared static and dynamic scheduling using a reproducible benchmark script.
+```text
+OptiFlow-Twin/
+│
+├── app.py
+├── requirements.txt
+├── pytest.ini
+├── README.md
+│
+├── data/
+│   ├── inventory.csv
+│   ├── orders.csv
+│   ├── order_lines.csv
+│   └── ...
+│
+├── src/
+│   ├── forecasting.py
+│   ├── inventory.py
+│   ├── recommendations.py
+│   ├── warehouse_state.py
+│   ├── digital_twin_simulation.py
+│   ├── scenario_analysis.py
+│   ├── layout_optimizer.py
+│   ├── order_prioritization.py
+│   └── benchmark_schedulers.py
+│
+└── tests/
+    ├── test_phase1.py
+    ├── test_digital_twin.py
+    └── test_order_prioritization.py
+```
 
-Current test suite: 29 tests passed.
+## Installation and Setup
 
-Run tests:
+### Prerequisites
+
+- Python
+- Git
+- pip
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/SHRUNGAD11/OptiFlow-Twin.git
+cd OptiFlow-Twin
+```
+
+### 2. Create a virtual environment
+
+**Windows:**
 
 ```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+**macOS/Linux:**
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 4. Run the application
+
+```bash
+streamlit run app.py
+```
+
+Open the local application at:
+
+```text
+http://localhost:8501
+```
+
+## Testing
+
+Run the automated test suite:
+
+```bash
 pytest -v
 ```
 
-Run scheduler benchmark:
+**Current validation: 29 tests passed.**
 
-```powershell
-python -m src.benchmark_schedulers
-```
+The tests cover forecasting and inventory functionality, warehouse state management, simulation behavior, and order prioritization.
 
-Run dashboard:
+## Performance Evaluation
 
-```powershell
-python -m streamlit run app.py
-```
+The following results were observed using the project's current dataset and simulation configuration.
 
-**Modelling limitations:** Results are based on synthetic warehouse data and simplified simulation assumptions. The layout optimizer uses a heuristic placement method, and the scheduler benchmark does not establish real-world operational savings.
+| Evaluation | Observed Result |
+|---|---:|
+| Automated tests | 29 passed |
+| Picking distance improvement | 2.83% |
+| Scheduled-order waiting-time reduction under high demand | 7.05% |
+| Forecasting models evaluated | 3 |
+| Dashboard modules | 11 |
+
+Results are dataset- and scenario-dependent. They should not be interpreted as guaranteed improvements in a live warehouse.
+
+## Dataset and Assumptions
+
+The project uses warehouse-related CSV datasets for inventory, historical sales, and order operations.
+
+The order-line dataset includes synthetically generated records to support order-level simulation. Therefore, simulation and optimization results should be interpreted as prototype evaluations rather than validated outcomes from a production warehouse.
+
+## Limitations
+
+- The current implementation uses dataset-driven and simulated warehouse operations.
+- The warehouse layout optimizer uses a heuristic slot-assignment approach.
+- Dynamic scheduling does not preempt orders already being processed.
+- Simulation results depend on the selected demand, workforce, and inventory assumptions.
+- Production deployment would require integration with real warehouse management systems and live operational data.
+
+## Future Enhancements
+
+- Real-time warehouse sensor and IoT integration.
+- Reinforcement learning for adaptive order scheduling.
+- Advanced warehouse layout optimization algorithms.
+- Live inventory synchronization with ERP/WMS systems.
+- Multi-warehouse digital twin simulation.
+- Predictive workforce allocation.
+- Role-based authentication and operational access control.
+
+## Live Application
+
+Explore the deployed application:
+
+**[Launch OptiFlow Twin](https://optiflow-twin-nf2npvjbwyn2kmkywyxxwq.streamlit.app/)**
+
+## Author
+
+**SHRUNGA D**
+
+B.Tech – Computer Science and Engineering (2023-2027) 
+M. S. Ramaiah University of Applied Sciences
+
+[GitHub Profile](https://github.com/SHRUNGAD11)
+
+---
+
+<p align="center">
+  <strong>OptiFlow Twin – Intelligent Warehousing Through AI and Digital Twin Technology.</strong>
+</p>
