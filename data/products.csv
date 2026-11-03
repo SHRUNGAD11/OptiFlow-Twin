@@ -1,0 +1,13 @@
+sku,product_name,category,current_stock,daily_demand,reorder_point,shelf_life_days,lead_time_days
+SKU1001,Whole Milk 1L,Dairy,420,38,70,4,7
+SKU1002,Greek Yogurt,Dairy,180,22,45,5,6
+SKU1003,Brown Bread,Bakery,260,31,60,3,5
+SKU1004,White Rice 5kg,Grocery,850,18,50,30,365
+SKU1005,Wheat Flour 5kg,Grocery,600,16,45,25,240
+SKU1006,Apples 1kg,Produce,150,19,40,4,12
+SKU1007,Bananas 1kg,Produce,125,24,45,3,7
+SKU1008,Eggs 12-pack,Dairy,300,27,55,8,21
+SKU1009,Coffee 200g,Beverages,210,12,35,30,180
+SKU1010,Orange Juice 1L,Beverages,190,15,40,5,20
+SKU1011,Pasta 500g,Grocery,500,14,40,30,300
+SKU1012,Tomato Sauce,Grocery,320,13,35,30,270
