@@ -17,6 +17,13 @@ from src.recommendations import generate_recommendations
 from src.warehouse_state import WarehouseState
 from src.digital_twin_simulation import run_warehouse_simulation
 from src.scenario_analysis import run_scenario_comparison
+from src.order_prioritization import calculate_order_priorities
+
+from src.layout_optimizer import (
+    optimize_warehouse_layout,
+    optimize_abc_layout,
+    compare_slotting_strategies,
+)
 
 st.set_page_config(page_title="OptiFlow Twin", page_icon="🏭", layout="wide")
 st.title("🏭 OptiFlow Twin")
@@ -47,7 +54,9 @@ with st.sidebar:
     tab_recs,
     tab_data,
     tab_digital_twin,
-    tab_scenario_lab
+    tab_scenario_lab,
+    tab_layout,
+    tab_priority
 ) = st.tabs([
     "Overview",
     "Inventory & FEFO",
@@ -57,7 +66,9 @@ with st.sidebar:
     "Recommendations",
     "Data",
     "Warehouse Digital Twin",
-    "Scenario Lab"
+    "Scenario Lab",
+    "Warehouse Layout",
+    "Intelligent Order Prioritization"
 ])
 
 forecast_metrics, forecast = compare_forecasters(sales, products, test_days=14)
@@ -547,3 +558,393 @@ with tab_scenario_lab:
 
     else:
         st.warning("Run the scenarios to view the comparison.")
+
+
+with tab_layout:
+    st.subheader("AI-Powered Warehouse Layout Optimization")
+
+    st.write(
+        "Visualize SKU placement based on demand velocity "
+        "and order-picking frequency."
+    )
+
+    strategy = st.selectbox(
+        "Select slotting strategy",
+        ["Demand-Based", "ABC-Based"],
+        key="layout_strategy"
+    )
+
+    if strategy == "Demand-Based":
+        result = optimize_warehouse_layout(
+            data_dir=str(ROOT / "data"),
+            rows=3,
+            columns=4
+        )
+        layout = result["layout"].copy()
+    else:
+        result = optimize_abc_layout(
+            data_dir=str(ROOT / "data"),
+            rows=3,
+            columns=4
+        )
+        layout = result["layout"].copy()
+
+    comparison = compare_slotting_strategies(
+        data_dir=str(ROOT / "data"),
+        rows=3,
+        columns=4
+    )
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total SKUs", result["total_skus"])
+    col2.metric(
+        "Average Picking Distance",
+        f"{result['average_picking_distance']:.3f}"
+    )
+
+    baseline_distance = comparison.loc[
+        comparison["strategy"] == "Alphabetical Baseline",
+        "average_distance"
+    ].iloc[0]
+
+    improvement = (
+        (baseline_distance - result["average_picking_distance"])
+        / baseline_distance * 100
+        if baseline_distance > 0 else 0
+    )
+
+    col3.metric(
+        "Improvement vs Baseline",
+        f"{improvement:.2f}%"
+    )
+
+    st.divider()
+
+    st.subheader("Warehouse Storage Grid")
+
+    for row_number in range(3):
+        columns_ui = st.columns(4)
+
+        for column_number in range(4):
+            slot_name = (
+                f"R{row_number + 1}-C{column_number + 1}"
+            )
+
+            slot_data = layout[
+                layout["slot"] == slot_name
+            ]
+
+            with columns_ui[column_number]:
+                if not slot_data.empty:
+                    product = slot_data.iloc[0]
+
+                    abc_label = (
+                        product["abc_class"]
+                        if "abc_class" in product.index
+                        else "N/A"
+                    )
+
+                    st.markdown(
+                        f"""
+                        **{slot_name}**
+
+                        {product['product_name']}
+
+                        SKU: {product['sku']}
+
+                        ABC: {abc_label}
+
+                        Picks: {int(product['order_frequency'])}
+
+                        Distance: {int(product['distance'])}
+                        """
+                    )
+                    st.success("Occupied")
+                else:
+                    st.info(f"{slot_name}\n\nEmpty")
+
+    st.divider()
+
+    st.subheader("SKU Placement Details")
+
+    display_columns = [
+        "sku",
+        "product_name",
+        "category",
+        "demand_score",
+        "order_frequency",
+        "slot",
+        "distance",
+    ]
+
+    if "abc_class" in layout.columns:
+        display_columns.append("abc_class")
+
+    st.dataframe(
+        layout[display_columns],
+        use_container_width=True
+    )
+
+    st.divider()
+
+    st.subheader("Slotting Strategy Comparison")
+
+    comparison_chart = px.bar(
+        comparison,
+        x="strategy",
+        y="average_distance",
+        color="strategy",
+        title="Weighted Average Picking Distance",
+        labels={
+            "strategy": "Slotting Strategy",
+            "average_distance": "Average Picking Distance",
+        }
+    )
+
+    st.plotly_chart(
+        comparison_chart,
+        use_container_width=True
+    )
+
+
+# ==========================================================
+# PHASE 3.3: INTELLIGENT ORDER PRIORITIZATION
+# ==========================================================
+
+with tab_priority:
+
+    st.subheader("Intelligent Order Prioritization")
+
+    st.caption(
+        "Dynamic order scheduling using business priority, "
+        "waiting time and workload."
+    )
+
+    if st.button("Run Priority-Based Simulation"):
+
+        priority_state = WarehouseState(data_dir="data")
+
+        priority_result = run_warehouse_simulation(
+            state=priority_state,
+            order_lines=pd.read_csv(
+                ROOT / "data" / "order_lines.csv"
+            ),
+            demand_multiplier=demand_multiplier,
+            workers=workers,
+            as_of=pd.Timestamp.now().normalize()
+        )
+
+        priority_orders = priority_result["order_results"]
+
+        if not priority_orders.empty:
+
+            st.session_state["priority_orders"] = priority_orders
+            st.session_state["priority_result"] = priority_result
+
+    if "priority_orders" in st.session_state:
+
+        priority_orders = st.session_state["priority_orders"]
+        priority_result = st.session_state["priority_result"]
+
+        st.divider()
+
+        st.subheader("Priority Scheduling KPIs")
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        total_orders = len(priority_orders)
+
+        dispatch_rate = (
+            priority_result["orders_dispatched"]
+            / total_orders * 100
+            if total_orders else 0
+        )
+
+        col1.metric("Orders Processed", total_orders)
+
+        col2.metric(
+            "Orders Dispatched",
+            priority_result["orders_dispatched"]
+        )
+
+        col3.metric(
+            "Dispatch Rate",
+            f"{dispatch_rate:.1f}%"
+        )
+
+        col4.metric(
+            "Average Waiting Time",
+            f"{priority_result['avg_wait_minutes']:.2f} min"
+        )
+
+        st.divider()
+
+        st.subheader("Priority Score Distribution")
+
+        priority_chart = px.histogram(
+            priority_orders,
+            x="priority_score",
+            color="priority",
+            nbins=20,
+            title="Distribution of Dynamic Priority Scores",
+            labels={
+                "priority_score": "Priority Score",
+                "count": "Number of Orders"
+            }
+        )
+
+        st.plotly_chart(
+            priority_chart,
+            use_container_width=True
+        )
+
+        st.divider()
+
+        st.subheader("Express vs Scheduled Orders")
+
+        priority_comparison = (
+            priority_orders.groupby("priority")
+            .agg(
+                total_orders=("order_id", "count"),
+                average_score=("priority_score", "mean"),
+                average_wait=("wait_minutes", "mean"),
+                dispatched=(
+                    "status",
+                    lambda x: (x == "Dispatched").sum()
+                )
+            )
+            .reset_index()
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            comparison_chart = px.bar(
+                priority_comparison,
+                x="priority",
+                y="average_score",
+                color="priority",
+                title="Average Priority Score",
+                labels={
+                    "priority": "Order Type",
+                    "average_score": "Average Score"
+                }
+            )
+
+            st.plotly_chart(
+                comparison_chart,
+                use_container_width=True
+            )
+
+        with col2:
+
+            waiting_chart = px.bar(
+                priority_comparison,
+                x="priority",
+                y="average_wait",
+                color="priority",
+                title="Average Waiting Time",
+                labels={
+                    "priority": "Order Type",
+                    "average_wait": "Waiting Time (minutes)"
+                }
+            )
+
+            st.plotly_chart(
+                waiting_chart,
+                use_container_width=True
+            )
+
+        st.dataframe(
+            priority_comparison,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.divider()
+
+        st.subheader("Top Priority Orders")
+
+        top_orders = priority_orders.sort_values(
+            "priority_score",
+            ascending=False
+        ).head(20)
+
+        st.dataframe(
+            top_orders[
+                [
+                    "order_id",
+                    "priority",
+                    "priority_score",
+                    "worker_id",
+                    "wait_minutes",
+                    "fulfillment_minutes",
+                    "status"
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.divider()
+
+        st.subheader("Waiting Time vs Priority Score")
+
+        waiting_scatter = px.scatter(
+            priority_orders,
+            x="wait_minutes",
+            y="priority_score",
+            color="priority",
+            hover_data=["order_id", "worker_id", "status"],
+            title="Order Waiting Time and Priority Relationship"
+        )
+
+        st.plotly_chart(
+            waiting_scatter,
+            use_container_width=True
+        )
+
+        st.subheader("Workload Analysis")
+
+        workload_chart = px.box(
+            priority_orders,
+            x="priority",
+            y="fulfillment_minutes",
+            color="priority",
+            title="Fulfillment Time by Order Type"
+        )
+
+        st.plotly_chart(
+            workload_chart,
+            use_container_width=True
+        )
+
+        st.divider()
+
+        st.subheader("Complete Order Priority Ranking")
+
+        ranked_orders = priority_orders.sort_values(
+            "priority_score",
+            ascending=False
+        ).reset_index(drop=True)
+
+        ranked_orders.insert(
+            0,
+            "display_rank",
+            range(1, len(ranked_orders) + 1)
+        )
+
+        st.dataframe(
+            ranked_orders,
+            use_container_width=True,
+            hide_index=True
+        )
+
+    else:
+
+        st.info(
+            "Click 'Run Priority-Based Simulation' "
+            "to generate dynamic order priority results."
+        )
