@@ -1,4 +1,10 @@
 # OptiFlow Twin
+![Python](https://img.shields.io/badge/Python-3.14-blue?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red?logo=streamlit&logoColor=white)
+![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Scikit--learn-orange?logo=scikitlearn&logoColor=white)
+![Simulation](https://img.shields.io/badge/Simulation-SimPy-green)
+![Tests](https://img.shields.io/badge/Tests-29%20Passed-brightgreen)
+![Deployment](https://img.shields.io/badge/Deployment-Streamlit%20Cloud-FF4B4B?logo=streamlit&logoColor=white)
 ### AI-Powered Digital Warehouse Management & Optimization Platform
 
 <p align="center">
